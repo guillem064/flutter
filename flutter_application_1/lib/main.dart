@@ -87,6 +87,17 @@ class FavoritesPage extends StatelessWidget {
   }
 }
 
+class _NavItem {
+  const _NavItem(this.icon, this.label);
+  final IconData icon;
+  final String label;
+}
+
+const _navItems = [
+  _NavItem(Icons.home, 'Home'),
+  _NavItem(Icons.favorite, 'Favorites'),
+];
+
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -95,39 +106,30 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
 
+  void _onSelected(int value) {
+    setState(() {
+      selectedIndex = value;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = GeneratorPage();
-      case 1:
-        page = FavoritesPage();
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
+    final mainArea = MainArea(selectedIndex: selectedIndex);
 
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 450) {
           return Scaffold(
-            body: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: SafeArea(child: page),
-            ),
+            body: mainArea,
             bottomNavigationBar: NavigationBar(
               selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                setState(() {
-                  selectedIndex = value;
-                });
-              },
+              onDestinationSelected: _onSelected,
               destinations: [
-                NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-                NavigationDestination(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favorites',
-                ),
+                for (final item in _navItems)
+                  NavigationDestination(
+                    icon: Icon(item.icon),
+                    label: item.label,
+                  ),
               ],
             ),
           );
@@ -140,33 +142,46 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: NavigationRail(
                   extended: constraints.maxWidth >= 600,
                   destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text('Home'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.favorite),
-                      label: Text('Favorites'),
-                    ),
+                    for (final item in _navItems)
+                      NavigationRailDestination(
+                        icon: Icon(item.icon),
+                        label: Text(item.label),
+                      ),
                   ],
                   selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
-                    setState(() {
-                      selectedIndex = value;
-                    });
-                  },
+                  onDestinationSelected: _onSelected,
                 ),
               ),
-              Expanded(
-                child: Container(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  child: page,
-                ),
-              ),
+              Expanded(child: mainArea),
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class MainArea extends StatelessWidget {
+  const MainArea({super.key, required this.selectedIndex});
+
+  final int selectedIndex;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget page = switch (selectedIndex) {
+      0 => GeneratorPage(),
+      1 => FavoritesPage(),
+      _ => throw UnimplementedError('no widget for $selectedIndex'),
+    };
+
+    return ColoredBox(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: SafeArea(
+        child: AnimatedSwitcher(
+          duration: Duration(milliseconds: 200),
+          child: page,
+        ),
+      ),
     );
   }
 }
