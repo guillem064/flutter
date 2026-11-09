@@ -37,6 +37,13 @@ class MyAppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool isFavorite(WordPair pair) => favorites.contains(pair);
+
+  void removeFavorite(WordPair pair) {
+    favorites.remove(pair);
+    notifyListeners();
+  }
+
   void toggleFavorite() {
     if (favorites.contains(current)) {
       favorites.remove(current);
@@ -67,7 +74,12 @@ class FavoritesPage extends StatelessWidget {
         ),
         for (var pair in appState.favorites)
           ListTile(
-            leading: Icon(Icons.favorite),
+            leading: IconButton(
+              icon: Icon(Icons.favorite),
+              color: Theme.of(context).colorScheme.primary,
+              tooltip: 'Elimina dels favorits',
+              onPressed: () => appState.removeFavorite(pair),
+            ),
             title: Text(pair.asLowerCase),
           ),
       ],
@@ -82,6 +94,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     Widget page;
@@ -93,8 +106,33 @@ class _MyHomePageState extends State<MyHomePage> {
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
+
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (constraints.maxWidth < 450) {
+          return Scaffold(
+            body: Container(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: SafeArea(child: page),
+            ),
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (value) {
+                setState(() {
+                  selectedIndex = value;
+                });
+              },
+              destinations: [
+                NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+                NavigationDestination(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favorites',
+                ),
+              ],
+            ),
+          );
+        }
+
         return Scaffold(
           body: Row(
             children: [
@@ -140,7 +178,7 @@ class GeneratorPage extends StatelessWidget {
     var pair = appState.current;
 
     IconData icon;
-    if (appState.favorites.contains(pair)) {
+    if (appState.isFavorite(pair)) {
       icon = Icons.favorite;
     } else {
       icon = Icons.favorite_border;
@@ -180,20 +218,18 @@ class HistoryListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-    
+
     return ListView(
       children: [
         for (var p in appState.history)
           ListTile(
             dense: true,
-            title: Text(
-              p.asLowerCase,
-              style: TextStyle(
-                fontWeight: appState.favorites.contains(p)
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-              ),
+            leading: Icon(
+              appState.isFavorite(p) ? Icons.favorite : Icons.favorite_border,
+              size: 18,
+              color: Theme.of(context).colorScheme.primary,
             ),
+            title: Text(p.asLowerCase),
           ),
       ],
     );
