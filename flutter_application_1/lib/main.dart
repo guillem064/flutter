@@ -148,9 +148,7 @@ class GeneratorPage extends StatelessWidget {
 
     return Column(
       children: [
-        // L'històric ocupa l'espai sobrant i fa scroll si no hi cap.
         Expanded(child: HistoryListView()),
-        Text('A random AWESOME idea:'),
         BigCard(pair: pair),
         SizedBox(height: 10),
         Row(
@@ -182,8 +180,7 @@ class HistoryListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-
-    // history ja guarda la més recent primer (insert(0, ...)).
+    
     return ListView(
       children: [
         for (var p in appState.history)
