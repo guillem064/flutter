@@ -146,54 +146,59 @@ class GeneratorPage extends StatelessWidget {
       icon = Icons.favorite_border;
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              reverse: true,
-              child: Column(
-                children: [
-                  for (var p in appState.history.reversed)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        p.asLowerCase,
-                        style: TextStyle(
-                          fontWeight: appState.favorites.contains(p)
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                ],
+    return Column(
+      children: [
+        // L'històric ocupa l'espai sobrant i fa scroll si no hi cap.
+        Expanded(child: HistoryListView()),
+        Text('A random AWESOME idea:'),
+        BigCard(pair: pair),
+        SizedBox(height: 10),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                appState.toggleFavorite();
+              },
+              icon: Icon(icon),
+              label: Text('Like'),
+            ),
+            SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () {
+                appState.getNext();
+              },
+              child: Text('Next'),
+            ),
+          ],
+        ),
+        SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class HistoryListView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    // history ja guarda la més recent primer (insert(0, ...)).
+    return ListView(
+      children: [
+        for (var p in appState.history)
+          ListTile(
+            dense: true,
+            title: Text(
+              p.asLowerCase,
+              style: TextStyle(
+                fontWeight: appState.favorites.contains(p)
+                    ? FontWeight.bold
+                    : FontWeight.normal,
               ),
             ),
           ),
-          BigCard(pair: pair),
-          SizedBox(height: 10),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () {
-                  appState.toggleFavorite();
-                },
-                icon: Icon(icon),
-                label: Text('Like'),
-              ),
-              SizedBox(width: 10),
-              ElevatedButton(
-                onPressed: () {
-                  appState.getNext();
-                },
-                child: Text('Next'),
-              ),
-            ],
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
